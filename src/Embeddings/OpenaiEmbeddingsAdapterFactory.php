@@ -11,25 +11,24 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace ModelflowAi\OpenaiAdapter;
+namespace ModelflowAi\OpenaiAdapter\Embeddings;
 
-use ModelflowAi\Core\Factory\ChatAdapterFactoryInterface;
-use ModelflowAi\Core\Model\AIModelAdapterInterface;
-use ModelflowAi\OpenaiAdapter\Model\OpenaiChatModelAdapter;
+use ModelflowAi\Embeddings\Adapter\EmbeddingAdapterInterface;
+use ModelflowAi\Embeddings\Adapter\EmbeddingsAdapterFactoryInterface;
 use OpenAI\Contracts\ClientContract;
 
-final readonly class OpenaiChatAdapterFactory implements ChatAdapterFactoryInterface
+final readonly class OpenaiEmbeddingsAdapterFactory implements EmbeddingsAdapterFactoryInterface
 {
     public function __construct(
         private ClientContract $client,
     ) {
     }
 
-    public function createChatAdapter(array $options): AIModelAdapterInterface
+    public function createEmbeddingAdapter(array $options): EmbeddingAdapterInterface
     {
         $model = \str_replace('gpt', 'gpt-', $options['model']);
 
-        return new OpenaiChatModelAdapter(
+        return new OpenaiEmbeddingAdapter(
             $this->client,
             $model,
         );

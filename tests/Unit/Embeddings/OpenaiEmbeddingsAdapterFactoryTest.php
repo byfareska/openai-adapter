@@ -11,10 +11,10 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace ModelflowAi\OpenaiAdapter\Tests\Unit;
+namespace ModelflowAi\OpenaiAdapter\Tests\Unit\Embeddings;
 
 use ModelflowAi\OpenaiAdapter\Embeddings\OpenaiEmbeddingAdapter;
-use ModelflowAi\OpenaiAdapter\OpenaiEmbeddingsAdapterFactory;
+use ModelflowAi\OpenaiAdapter\Embeddings\OpenaiEmbeddingsAdapterFactory;
 use OpenAI\Contracts\ClientContract;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;

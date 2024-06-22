@@ -11,10 +11,10 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace ModelflowAi\OpenaiAdapter\Tests\Unit;
+namespace ModelflowAi\OpenaiAdapter\Tests\Unit\Chat;
 
-use ModelflowAi\OpenaiAdapter\Model\OpenaiChatModelAdapter;
-use ModelflowAi\OpenaiAdapter\OpenaiChatAdapterFactory;
+use ModelflowAi\OpenaiAdapter\Chat\OpenaiChatAdapter;
+use ModelflowAi\OpenaiAdapter\Chat\OpenaiChatAdapterFactory;
 use OpenAI\Contracts\ClientContract;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -35,6 +35,6 @@ class OpenaiChatAdapterFactoryTest extends TestCase
             'functions' => true,
             'priority' => 0,
         ]);
-        $this->assertInstanceOf(OpenaiChatModelAdapter::class, $adapter);
+        $this->assertInstanceOf(OpenaiChatAdapter::class, $adapter);
     }
 }

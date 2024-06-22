@@ -11,19 +11,19 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace ModelflowAi\OllamaAdapter\Tests\Unit\Model;
+namespace ModelflowAi\OllamaAdapter\Tests\Unit\Chat;
 
-use ModelflowAi\Core\Request\AIChatMessageCollection;
-use ModelflowAi\Core\Request\AIChatRequest;
-use ModelflowAi\Core\Request\Criteria\AIRequestCriteriaCollection;
-use ModelflowAi\Core\Request\Message\AIChatMessage;
-use ModelflowAi\Core\Request\Message\AIChatMessageRoleEnum;
-use ModelflowAi\Core\Response\AIChatResponse;
-use ModelflowAi\Core\Response\AIChatResponseStream;
-use ModelflowAi\Core\ToolInfo\ToolChoiceEnum;
-use ModelflowAi\Core\ToolInfo\ToolInfoBuilder;
-use ModelflowAi\Core\ToolInfo\ToolTypeEnum;
-use ModelflowAi\OpenaiAdapter\Model\OpenaiChatModelAdapter;
+use ModelflowAi\Chat\Request\AIChatMessageCollection;
+use ModelflowAi\Chat\Request\AIChatRequest;
+use ModelflowAi\Chat\Request\Message\AIChatMessage;
+use ModelflowAi\Chat\Request\Message\AIChatMessageRoleEnum;
+use ModelflowAi\Chat\Response\AIChatResponse;
+use ModelflowAi\Chat\Response\AIChatResponseStream;
+use ModelflowAi\Chat\ToolInfo\ToolChoiceEnum;
+use ModelflowAi\Chat\ToolInfo\ToolInfoBuilder;
+use ModelflowAi\Chat\ToolInfo\ToolTypeEnum;
+use ModelflowAi\DecisionTree\Criteria\CriteriaCollection;
+use ModelflowAi\OpenaiAdapter\Chat\OpenaiChatAdapter;
 use OpenAI\Contracts\ClientContract;
 use OpenAI\Contracts\Resources\ChatContract;
 use OpenAI\Responses\Chat\CreateResponse;
@@ -34,7 +34,7 @@ use OpenAI\Testing\Responses\Fixtures\Chat\CreateResponseFixture;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
-final class OpenaiChatModelAdapterTest extends TestCase
+final class OpenaiChatAdapterTest extends TestCase
 {
     use ProphecyTrait;
 
@@ -72,9 +72,9 @@ final class OpenaiChatModelAdapterTest extends TestCase
             new AIChatMessage(AIChatMessageRoleEnum::SYSTEM, 'System message'),
             new AIChatMessage(AIChatMessageRoleEnum::USER, 'User message'),
             new AIChatMessage(AIChatMessageRoleEnum::ASSISTANT, 'Assistant message'),
-        ), new AIRequestCriteriaCollection(), [], [], [], fn () => null);
+        ), new CriteriaCollection(), [], [], [], fn () => null);
 
-        $adapter = new OpenaiChatModelAdapter($client->reveal());
+        $adapter = new OpenaiChatAdapter($client->reveal());
         $result = $adapter->handleRequest($request);
 
         $this->assertInstanceOf(AIChatResponse::class, $result);
@@ -117,9 +117,9 @@ final class OpenaiChatModelAdapterTest extends TestCase
             new AIChatMessage(AIChatMessageRoleEnum::SYSTEM, 'System message'),
             new AIChatMessage(AIChatMessageRoleEnum::USER, 'User message'),
             new AIChatMessage(AIChatMessageRoleEnum::ASSISTANT, 'Assistant message'),
-        ), new AIRequestCriteriaCollection(), [], [], ['format' => 'json'], fn () => null);
+        ), new CriteriaCollection(), [], [], ['format' => 'json'], fn () => null);
 
-        $adapter = new OpenaiChatModelAdapter($client->reveal());
+        $adapter = new OpenaiChatAdapter($client->reveal());
         $result = $adapter->handleRequest($request);
 
         $this->assertInstanceOf(AIChatResponse::class, $result);
@@ -128,7 +128,7 @@ final class OpenaiChatModelAdapterTest extends TestCase
     public function testHandleRequestStreamed(): void
     {
         /** @var resource $resource */
-        $resource = \fopen(__DIR__ . '/stream.txt', 'r');
+        $resource = \fopen(__DIR__ . '/resources/stream.txt', 'r');
 
         $client = new ClientFake([
             CreateStreamedResponse::fake($resource),
@@ -138,9 +138,9 @@ final class OpenaiChatModelAdapterTest extends TestCase
             new AIChatMessage(AIChatMessageRoleEnum::SYSTEM, 'System message'),
             new AIChatMessage(AIChatMessageRoleEnum::USER, 'User message'),
             new AIChatMessage(AIChatMessageRoleEnum::ASSISTANT, 'Assistant message'),
-        ), new AIRequestCriteriaCollection(), [], [], ['streamed' => true], fn () => null);
+        ), new CriteriaCollection(), [], [], ['streamed' => true], fn () => null);
 
-        $adapter = new OpenaiChatModelAdapter($client);
+        $adapter = new OpenaiChatAdapter($client);
         $result = $adapter->handleRequest($request);
 
         $this->assertInstanceOf(AIChatResponseStream::class, $result);
@@ -153,7 +153,7 @@ final class OpenaiChatModelAdapterTest extends TestCase
 
     public function testHandleRequestWithTools(): void
     {
-        $contents = (array) \json_decode((string) \file_get_contents(__DIR__ . '/tools.txt'), true);
+        $contents = (array) \json_decode((string) \file_get_contents(__DIR__ . '/resources/tools.txt'), true);
 
         $client = new ClientFake([
             CreateResponse::fake($contents),
@@ -163,13 +163,13 @@ final class OpenaiChatModelAdapterTest extends TestCase
             new AIChatMessage(AIChatMessageRoleEnum::SYSTEM, 'System message'),
             new AIChatMessage(AIChatMessageRoleEnum::USER, 'User message'),
             new AIChatMessage(AIChatMessageRoleEnum::ASSISTANT, 'Assistant message'),
-        ), new AIRequestCriteriaCollection(), [
+        ), new CriteriaCollection(), [
             'test' => [$this, 'toolMethod'],
         ], [
             ToolInfoBuilder::buildToolInfo($this, 'toolMethod', 'test'),
         ], ['toolChoice' => ToolChoiceEnum::AUTO], fn () => null);
 
-        $adapter = new OpenaiChatModelAdapter($client);
+        $adapter = new OpenaiChatAdapter($client);
         $result = $adapter->handleRequest($request);
 
         $this->assertInstanceOf(AIChatResponse::class, $result);
@@ -202,7 +202,7 @@ final class OpenaiChatModelAdapterTest extends TestCase
     public function testHandleRequestStreamedWithTools(): void
     {
         /** @var resource $resource */
-        $resource = \fopen(__DIR__ . '/tools-stream.txt', 'r');
+        $resource = \fopen(__DIR__ . '/resources/tools-stream.txt', 'r');
 
         $client = new ClientFake([
             CreateStreamedResponse::fake($resource),
@@ -212,13 +212,13 @@ final class OpenaiChatModelAdapterTest extends TestCase
             new AIChatMessage(AIChatMessageRoleEnum::SYSTEM, 'System message'),
             new AIChatMessage(AIChatMessageRoleEnum::USER, 'User message'),
             new AIChatMessage(AIChatMessageRoleEnum::ASSISTANT, 'Assistant message'),
-        ), new AIRequestCriteriaCollection(), [
+        ), new CriteriaCollection(), [
             'test' => [$this, 'toolMethod'],
         ], [
             ToolInfoBuilder::buildToolInfo($this, 'toolMethod', 'test'),
         ], ['streamed' => true], fn () => null);
 
-        $adapter = new OpenaiChatModelAdapter($client);
+        $adapter = new OpenaiChatAdapter($client);
         $result = $adapter->handleRequest($request);
 
         $this->assertInstanceOf(AIChatResponseStream::class, $result);

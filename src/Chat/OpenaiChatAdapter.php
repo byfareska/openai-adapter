@@ -11,27 +11,24 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace ModelflowAi\OpenaiAdapter\Model;
+namespace ModelflowAi\OpenaiAdapter\Chat;
 
-use ModelflowAi\Core\Model\AIModelAdapterInterface;
-use ModelflowAi\Core\Request\AIChatRequest;
-use ModelflowAi\Core\Request\AIRequestInterface;
-use ModelflowAi\Core\Request\Message\AIChatMessageRoleEnum;
-use ModelflowAi\Core\Response\AIChatResponse;
-use ModelflowAi\Core\Response\AIChatResponseMessage;
-use ModelflowAi\Core\Response\AIChatResponseStream;
-use ModelflowAi\Core\Response\AIChatToolCall;
-use ModelflowAi\Core\Response\AIResponseInterface;
-use ModelflowAi\Core\ToolInfo\ToolChoiceEnum;
-use ModelflowAi\Core\ToolInfo\ToolTypeEnum;
-use ModelflowAi\OpenaiAdapter\Tool\ToolFormatter;
+use ModelflowAi\Chat\Adapter\AIChatAdapterInterface;
+use ModelflowAi\Chat\Request\AIChatRequest;
+use ModelflowAi\Chat\Request\Message\AIChatMessageRoleEnum;
+use ModelflowAi\Chat\Response\AIChatResponse;
+use ModelflowAi\Chat\Response\AIChatResponseMessage;
+use ModelflowAi\Chat\Response\AIChatResponseStream;
+use ModelflowAi\Chat\Response\AIChatToolCall;
+use ModelflowAi\Chat\ToolInfo\ToolChoiceEnum;
+use ModelflowAi\Chat\ToolInfo\ToolTypeEnum;
 use OpenAI\Contracts\ClientContract;
 use OpenAI\Responses\Chat\CreateResponseToolCall;
 use OpenAI\Responses\Chat\CreateStreamedResponse;
 use OpenAI\Responses\StreamResponse;
 use Webmozart\Assert\Assert;
 
-final readonly class OpenaiChatModelAdapter implements AIModelAdapterInterface
+final readonly class OpenaiChatAdapter implements AIChatAdapterInterface
 {
     public function __construct(
         private ClientContract $client,
@@ -39,10 +36,8 @@ final readonly class OpenaiChatModelAdapter implements AIModelAdapterInterface
     ) {
     }
 
-    public function handleRequest(AIRequestInterface $request): AIResponseInterface
+    public function handleRequest(AIChatRequest $request): AIChatResponse
     {
-        Assert::isInstanceOf($request, AIChatRequest::class);
-
         /** @var string|null $format */
         $format = $request->getOption('format');
         Assert::inArray($format, [null, 'json'], \sprintf('Invalid format "%s" given.', $format));
@@ -97,7 +92,7 @@ final readonly class OpenaiChatModelAdapter implements AIModelAdapterInterface
      *     tool_choice?: string,
      * } $parameters
      */
-    protected function create(AIChatRequest $request, array $parameters): AIResponseInterface
+    protected function create(AIChatRequest $request, array $parameters): AIChatResponse
     {
         $result = $this->client->chat()->create($parameters);
 
@@ -155,7 +150,7 @@ final readonly class OpenaiChatModelAdapter implements AIModelAdapterInterface
      *      tool_choice?: string,
      * } $parameters
      */
-    protected function createStreamed(AIChatRequest $request, array $parameters): AIResponseInterface
+    protected function createStreamed(AIChatRequest $request, array $parameters): AIChatResponse
     {
         $responses = $this->client->chat()->createStreamed($parameters);
 
